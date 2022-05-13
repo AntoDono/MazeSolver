@@ -38,6 +38,9 @@ export default {
             }else{
                 this.$refs.box.classList.toggle("end")
             }
+        },
+        set_traveled(){
+            this.$refs.box.classList.add("traveled")
         }
     }
 }
@@ -69,6 +72,11 @@ export default {
 .selected{
     background-color: white;
     border-color: white;
+}
+
+.traveled{
+    border: 2 px solid red !important;
+    background-color: red !important;
 }
 
 </style>
