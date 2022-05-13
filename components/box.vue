@@ -1,5 +1,5 @@
 <template>
-    <div class="w-12 h-12 initial" @click="clicked" ref="box">
+    <div class="w-12 h-12 initial" @click="clicked" @mouseover="hovered" ref="box">
     </div>
 </template>
 
@@ -41,6 +41,16 @@ export default {
         },
         set_traveled(){
             this.$refs.box.classList.add("traveled")
+        },
+        hovered(){
+            this.$emit("hovered", this.row, this.col)
+        },
+        reset(){
+            this.$refs.box.classList.remove("start")
+            this.$refs.box.classList.remove("end")
+            this.$refs.box.classList.remove("selected")
+            this.$refs.box.classList.remove("traveled")
+            this.on = false
         }
     }
 }

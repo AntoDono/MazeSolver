@@ -3,10 +3,13 @@
     <h1 class="text-5xl">{{message}}</h1>
     <div class="border-2 border-black">
       <div v-for="outer in row_max" :key="outer" class="flex justify-center items-center flex-row">
-        <box v-for="inner in col_max" :key="inner" :ref="`${outer-1}-${inner-1}`" :row="outer-1" :col="inner-1" @clicked="selected"/>
+        <box v-for="inner in col_max" :key="inner" :ref="`${outer-1}-${inner-1}`" :row="outer-1" :col="inner-1" @clicked="selected" @hovered="hover"/>
       </div>
     </div>
-    <button class="relative top-10 text-2xl font-white bg-green-400 pl-4 pr-4 pt-2 pb-2" @click="solve">Solve</button>
+    <div class="flex justify-center items-center flex-row">
+      <button class="relative top-10 text-2xl font-white bg-green-400 pl-4 pr-4 pt-2 pb-2" @click="solve">Solve</button>
+      <button class="relative top-10 text-2xl font-white bg-green-400 pl-4 pr-4 pt-2 pb-2" @click="reset">Reset</button>
+    </div>
   </div>
 </template>
 
@@ -32,7 +35,9 @@ export default {
       solutions: 0,
       row_max: 10,
       col_max: 10,
-      stack_called: 0
+      stack_called: 0,
+      hover: ()=>{},
+      mouse_down: false
     }
   },
   methods:{
@@ -49,8 +54,10 @@ export default {
         this.matrix[row][col] = state
         this.end = [row, col]
         this.action = 2
-        this.message = "Select the tiles to create paths"
+        this.message = "Click/click and drag the tiles to create paths"
         this.$refs[`${row}-${col}`][0].set_end("end")
+
+        this.hover = this.activate_hover
       }else{
         console.log(`Path ${row}, ${col}`)
         this.matrix[row][col] = state
@@ -99,10 +106,39 @@ export default {
     },
     sleep(ms) {
       return new Promise(resolve => setTimeout(resolve, ms));
+    },
+    activate_hover(row, col){
+      if (this.mouse_down){
+        this.$refs[`${row}-${col}`][0].clicked()
+      }
+    },
+    reset(){
+      this.start = [],
+      this.end = [],
+      this.message = "Select starting spot",
+      this.action = 0,
+      this.solutions = 0,
+      this.row_max = 10,
+      this.col_max = 10,
+      this.stack_called = 0,
+      this.hover = ()=>{},
+      this.mouse_down = false
+
+      for (let o = 0; o < this.col_max; o ++){
+        for (let i = 0; i < this.row_max; i ++){
+          this.$refs[`${o}-${i}`][0].reset()
+          this.matrix[o][i] = false
+        }
+      }
     }
   },
   mounted(){
-    console.log(this.matrix)
+    document.body.onmousedown = ()=> {
+      this.mouse_down = true
+    }
+    document.body.onmouseup = ()=> {
+      this.mouse_down = false
+    }
   }
 }
 </script>
