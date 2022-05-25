@@ -30,6 +30,7 @@ export default {
       })(),
       start: [],
       end: [],
+      paths: 0,
       message: "Select starting spot",
       action: 0,
       solutions: 0,
@@ -42,6 +43,7 @@ export default {
   },
   methods:{
     selected(row, col, state){
+      console.log("selecting: " + row + "," + col)
       if (this.action==0){
         console.log(`Start ${row}, ${col}`)
         this.matrix[row][col] = state
@@ -61,15 +63,16 @@ export default {
       }else{
         console.log(`Path ${row}, ${col}`)
         this.matrix[row][col] = state
+        if (state) this.paths++
+        else this.paths--
       }
     },
-    async solve(){
-      await this.breadth_depth(this.start)
-      this.message = "Solving..."
+    solve(){
+      this.breadth_depth(this.start)
+      this.message = `${this.stack_called}/${this.paths*4} solved`
     },
-    async breadth_depth(coords){
+    breadth_depth(coords){
 
-      this.stack_called++
       console.log("Current: " + coords + " Stack called: " + this.stack_called)
 
       let neighbors = [], row = coords[0], col = coords[1]
@@ -88,7 +91,7 @@ export default {
       if (row == this.end[0] && col == this.end[1]) {
         this.solutions++;
         console.log(this.solutions)
-        this.message = `Found ${this.solutions} solutions to this maze.`
+        // this.message = `Found ${this.solutions} solutions to this maze.`
         return
       }
 
@@ -103,6 +106,10 @@ export default {
         await this.sleep(100)
         this.breadth_depth(coords)
       })
+
+      this.stack_called+=3
+      this.message = `${this.stack_called}/${this.paths*4} solved`
+
     },
     sleep(ms) {
       return new Promise(resolve => setTimeout(resolve, ms));
@@ -123,6 +130,7 @@ export default {
       this.stack_called = 0,
       this.hover = ()=>{},
       this.mouse_down = false
+      this.paths = 0
 
       for (let o = 0; o < this.col_max; o ++){
         for (let i = 0; i < this.row_max; i ++){

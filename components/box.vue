@@ -51,6 +51,7 @@ export default {
             this.$refs.box.classList.remove("selected")
             this.$refs.box.classList.remove("traveled")
             this.on = false
+            this.end = false
         }
     }
 }
