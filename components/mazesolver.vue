@@ -1,7 +1,7 @@
 <template>
     <div class="flex justify-center flex-col gap-y-5">
         <h2 class="text-center text-xl">{{directions}}</h2>
-        <h2 class="text-center text-xl">Solutions: {{solutions}}</h2>
+        <h2 class="text-center text-xl">Solved: {{solved}}</h2>
         <div class="flex justify-center items-center flex-col">
             <div v-for="row in rows" :key="row" class="flex flex-row">
                 <tile v-for="col in cols" :key="col" :row="row" :col="col" @clicked="clicked" :ref="`r${row}-c${col}`"/>
@@ -29,7 +29,7 @@
                     row: null,
                     col: null 
                 },
-                solutions: 0,
+                solved: false,
                 directions: "Initializing Map",
                 mode: 0, // 0 means select start, 1 means select end, 2 means selecting paths,
                 debug: true,
@@ -74,6 +74,7 @@
                 }
             },
             async dfs(row, col){
+                if (this.solved) return
                 await this.sleep(this.delay)
                 if ( row < 1 || row > this.rows || col < 1 || col > this.cols ) return // check if it is out of bound
                 if (this.lookup[row][col] == 1 || this.isPath[row][col] == 0) return // if visited or is not a path return
@@ -84,7 +85,7 @@
 
                 if (row == this.end.row && col == this.end.col) {
                     this.directions = "Reached the End!"
-                    this.solutions ++
+                    this.solved = true
                     return
                 }
 
@@ -107,7 +108,7 @@
                     }
                 }
 
-                this.solutions = 0
+                this.solved = false
                 this.mode = 0
                 
                 this.initialize()
