@@ -1,11 +1,14 @@
 <template>
     <div class="flex justify-center flex-col gap-y-5">
         <h2 class="text-center text-xl">{{directions}}</h2>
-        <div class="flex justify-center items-center">
-            <div v-for="row in rows" :key="row">
+        <h2 class="text-center text-xl">Solutions: {{solutions}}</h2>
+        <div class="flex justify-center items-center flex-col">
+            <div v-for="row in rows" :key="row" class="flex flex-row">
                 <tile v-for="col in cols" :key="col" :row="row" :col="col" @clicked="clicked" :ref="`r${row}-c${col}`"/>
             </div>
         </div>
+        <button @click="solve">SOLVE</button>
+        <button @click="reset">RESET</button>
     </div>
 </template>
 
@@ -26,11 +29,17 @@
                     row: null,
                     col: null 
                 },
-                directions: "",
-                mode: 0 // 0 means select start, 1 means select end, 2 means selecting paths
+                solutions: 0,
+                directions: "Initializing Map",
+                mode: 0, // 0 means select start, 1 means select end, 2 means selecting paths,
+                debug: true,
+                delay: 50,
             }
         },
         methods:{
+            sleep(milliseconds){
+                return new Promise(resolve => setTimeout(resolve, milliseconds))
+            },
             printLookup(){
                 for (let row = 0; row <= this.rows; row++){
                     console.log(`Row ${row}: ${this.lookup[row].toString()}`)
@@ -42,7 +51,10 @@
                 }
             },
             clicked(pos){
-                this.isPath[pos.row][pos.col] = pos.activated
+                if (pos.activated) this.isPath[pos.row][pos.col] = 1
+                else this.isPath[pos.row][pos.col] = 0
+
+                if (this.debug) this.printPath(this.isPath[pos.row][pos.col])
 
                 if (this.mode == 0) {
                     this.start.row = pos.row
@@ -61,6 +73,46 @@
                     this.mode = 2
                 }
             },
+            async dfs(row, col){
+                await this.sleep(this.delay)
+                if ( row < 1 || row > this.rows || col < 1 || col > this.cols ) return // check if it is out of bound
+                if (this.lookup[row][col] == 1 || this.isPath[row][col] == 0) return // if visited or is not a path return
+                if (this.debug) console.log(`Visited r${row} c${col}`)
+                this.lookup[row][col] = 1
+
+                this.$refs[`r${row}-c${col}`][0].visit() // makes the tile turn to visited color
+
+                if (row == this.end.row && col == this.end.col) {
+                    this.directions = "Reached the End!"
+                    this.solutions ++
+                    return
+                }
+
+                await this.dfs(row - 1, col) // visit up tile
+                await this.dfs(row + 1, col) // visit down tile
+                await this.dfs(row, col - 1) // visit left tile
+                await this.dfs(row, col + 1) // visit right tile
+
+                return new Promise( resolve => resolve("finished dfs node"))
+            },
+            async solve(){
+                await this.dfs(this.start.row, this.start.col)
+            },
+            reset(){
+                for (let row = 1; row <= this.rows; row++){
+                    for (let col = 1; col <= this.cols; col++){
+                        this.lookup[row][col] = 0
+                        this.isPath[row][col] = 0
+                        this.$refs[`r${row}-c${col}`][0].reset()
+                    }
+                }
+
+                this.solutions = 0
+                this.mode = 0
+                
+                this.initialize()
+                this.directions = "Please select the starting point"
+            },
             initialize(){
 
                 /*Initializing Lookup*/
@@ -68,40 +120,38 @@
                 // add the first row 0 to be false, setting columns to be 1 - indexed
                 this.lookup.push([])
                 for (let col = 0; col <= this.cols; col++){
-                    this.lookup[0].push(false)
+                    this.lookup[0].push(-1)
                 }
         
                 // filling up the rest of the lookup
                 for (let row = 1; row <= this.rows; row++){
-                    this.lookup.push([false]) // filling the index 0 col, making the columns 1 - indexed
+                    this.lookup.push([-1]) // filling the index 0 col with -1, making the columns 1 - indexed
                     for (let col = 1; col <= this.cols; col++){
-                        this.lookup[row].push(false) // filling the rest with 0.
+                        this.lookup[row].push(0) // filling the rest with 0.
                     }
                 }
 
                 /*Initializing isPath*/
                 
-                // add the first row 0 to be false, setting columns to be 1 - indexed
+                // add the first row 0 to be -1, setting columns to be 1 - indexed
                 this.isPath.push([])
                 for (let col = 0; col <= this.cols; col++){
-                    this.isPath[0].push(false)
+                    this.isPath[0].push(-1)
                 }
         
                 // filling up the rest of the lookup
                 for (let row = 1; row <= this.rows; row++){
-                    this.isPath.push([false]) // filling the index 0 col, making the columns 1 - indexed
+                    this.isPath.push([-1]) // filling the index 0 col with -1, making the columns 1 - indexed
                     for (let col = 1; col <= this.cols; col++){
-                        this.isPath[row].push(false) // filling the rest with 0.
+                        this.isPath[row].push(0) // filling the rest with 0.
                     }
                 }
 
             }
         },
-        mounted(){
-
+        async mounted(){
             this.initialize()
             this.directions = "Please select the starting point"
-            console.log(this.$refs)
         }
     }
 </script>

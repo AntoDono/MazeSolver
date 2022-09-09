@@ -33,6 +33,13 @@
             endpoint(mode){
                 if (mode == 0) this.$refs["tile"].classList.add("start")
                 else if (mode == 1) this.$refs["tile"].classList.add("end")
+            },
+            reset(){
+                this.activated = false
+                this.$refs["tile"].classList.remove("activated")
+                this.$refs["tile"].classList.remove("visited")
+                this.$refs["tile"].classList.remove("start")
+                this.$refs["tile"].classList.remove("end")
             }
         }
     }
